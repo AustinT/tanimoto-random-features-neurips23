@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pytest
 
@@ -5,6 +7,7 @@ from trf23 import fingerprint_features as ff
 from trf23 import tanimoto_functions as tf
 from trf23.random_features import tdp as tdp_rf
 from trf23.random_features import tmm as tmm_rf
+from trf23.random_features.error import max_eigenvalue_difference
 
 fake_fp1 = {0: 1, 2: 3}
 fake_fp2 = {0: 1, 2: 5, 10: 2, 15: 7}
@@ -77,3 +80,17 @@ def test_default_TDP_featurizer():
     # Compute error
     tdp_approx = features @ features.T
     assert np.allclose(tdp_approx, tdp_true, atol=0.02)
+
+
+@pytest.mark.parametrize(
+    "k_true,k_approx,lmbda,value",
+    [
+        ([[1.0]], [[0.0]], 0.1, 10 / 11),
+        ([[2.0]], [[1.5]], 0.2, 0.5 / 2.2),
+        ([[1.0, 0.0], [0.0, 1.0]], [[1.5, 0.0], [0.0, 1.3]], 0.1, 0.5 / 1.1),
+    ],
+)
+def test_max_eigenvalue_difference(k_true, k_approx, lmbda, value):
+    eig_diffs = max_eigenvalue_difference(K_exact=np.asarray(k_true), K_approx=np.asarray(k_approx), lambda_arr=[lmbda])
+    assert len(eig_diffs) == 1
+    assert math.isclose(eig_diffs[0], value)
