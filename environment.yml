@@ -1,0 +1,23 @@
+name: trf23
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - joblib
+  - matplotlib
+  - numpy
+  - pandas
+  - pip
+  - pre-commit
+  - pytest
+  - python=3.10
+  - pytorch
+  - rdkit
+  - scikit-learn
+  - scipy
+  - tqdm
+  - pip:
+      - botorch==0.9.*
+      - gpytorch==1.11
+      - tueplots
