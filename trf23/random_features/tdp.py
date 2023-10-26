@@ -10,17 +10,25 @@ from scipy import stats
 from sklearn.kernel_approximation import PolynomialCountSketch, fft, ifft
 
 
-def gamma_dist(s: float, c: float) -> stats.gamma:
+def _gamma_dist(s: float, c: float) -> stats.gamma:
     return stats.gamma(a=s, scale=1 / c)
 
 
-def draw_gamma_qmc_samples(num_rf: int, s: float, c: float, rng: np.random.Generator) -> np.ndarray:
+def _draw_gamma_qmc_samples(num_rf: int, s: float, c: float, rng: np.random.Generator) -> np.ndarray:
     gamma_offset = rng.random()
     gamma_cdf_vals = np.mod(gamma_offset + np.linspace(0, 1, num_rf), 1.0)
-    return gamma_dist(s=s, c=c).ppf(gamma_cdf_vals)
+    return _gamma_dist(s=s, c=c).ppf(gamma_cdf_vals)
 
 
-def tanimoto_power_series_denominator_rf(
+def _get_optimal_s(r: int, min_input_square_norm: float) -> float:
+    return r * min_input_square_norm
+
+
+def _get_optimal_c(r: int, min_input_square_norm: float) -> float:
+    return 2 * (min_input_square_norm**2)
+
+
+def _tanimoto_power_series_denominator_rf(
     x: np.ndarray,
     gamma_samples: np.ndarray,
     r: int,
@@ -55,6 +63,44 @@ def combine_count_sketches(sketch1: np.ndarray, sketch2: np.ndarray) -> np.ndarr
     return np.real(ifft(fft_prod, overwrite_x=True))
 
 
+class PrefactorQMC_Featurizer:
+    """Random featurizer for 1/(|x|^2 + |y|^2)"""
+
+    def __init__(
+        self,
+        *,
+        r: int,
+        num_rf: int,
+        s: float,
+        c: float,
+        rng,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.r = r
+        self.s = s
+        self.c = c
+
+        # Draw QMC samples
+        self.gamma_samples = _draw_gamma_qmc_samples(
+            num_rf=num_rf,
+            s=s,
+            c=c,
+            rng=rng,
+        )
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return _tanimoto_power_series_denominator_rf(
+            x=x,
+            gamma_samples=self.gamma_samples,
+            r=self.r,
+            c=self.c,
+            s=self.s,
+            allow_r_less_than_s=True,
+        )
+
+
 class TDP_PowerSeriesTermFeaturizer:
     """
     Random featurizer for a single term in the TDP power series,
@@ -68,7 +114,7 @@ class TDP_PowerSeriesTermFeaturizer:
         self,
         *,
         num_rf: int,
-        gamma_samples: np.ndarray,
+        num_prefactor_rf: int,
         input_dim: int,
         c: float,
         s: float,
@@ -77,20 +123,23 @@ class TDP_PowerSeriesTermFeaturizer:
     ):
         super().__init__()
 
-        self.r = r
-        self.s = s
-        self.c = c
-        self._gamma_samples = gamma_samples
+        self.prefactor_featurizer = PrefactorQMC_Featurizer(
+            r=r,
+            num_rf=num_prefactor_rf,
+            s=s,
+            c=c,
+            rng=rng,
+        )
 
         random_state = np.random.RandomState(rng.bit_generator)
-        self.numerator_sketch = PolynomialCountSketch(degree=self.r, n_components=num_rf, random_state=random_state)
+        self.numerator_sketch = PolynomialCountSketch(degree=r, n_components=num_rf, random_state=random_state)
         self.numerator_sketch.fit(np.zeros((1, input_dim)))  # just initialize random variables
         self.denominator_sketch = PolynomialCountSketch(degree=1, n_components=num_rf, random_state=random_state)
-        self.denominator_sketch.fit(np.zeros((1, len(gamma_samples))))
+        self.denominator_sketch.fit(np.zeros((1, num_prefactor_rf)))
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         # Sketch denominator
-        phi = tanimoto_power_series_denominator_rf(x, self._gamma_samples, self.r, s=self.s, c=self.c)
+        phi = self.prefactor_featurizer(x)
 
         # Sketch numerator
         num_rf_sketch = self.numerator_sketch.transform(x)
@@ -127,15 +176,9 @@ class TDP_PowerSeriesFeaturizer:
         # Create random featurizers for each term
         self.term_featurizers = []
         for r in self.r_list:
-            gamma_samples = draw_gamma_qmc_samples(
-                num_rf=r_to_num_gamma[r],
-                s=r_to_s[r],
-                c=r_to_c[r],
-                rng=rng,
-            )
             featurizer_r = TDP_PowerSeriesTermFeaturizer(
                 num_rf=r_to_num_rf[r],
-                gamma_samples=gamma_samples,
+                num_prefactor_rf=r_to_num_gamma[r],
                 input_dim=input_dim,
                 c=r_to_c[r],
                 s=r_to_s[r],
@@ -216,8 +259,8 @@ class Default_rs_TDPFeaturizer(TDP_PowerSeriesFeaturizer):
         **kwargs,
     ):
         # Compute r_to_* dicts
-        r_to_s = {r: r * min_input_square_norm for r in r_to_num_rf}
-        r_to_c = {r: 2 * (min_input_square_norm**2) for r in r_to_num_rf}
+        r_to_s = {r: _get_optimal_s(r, min_input_square_norm) for r in r_to_num_rf}
+        r_to_c = {r: _get_optimal_c(r, min_input_square_norm) for r in r_to_num_rf}
         r_to_num_gamma = {r: num_gamma for r in r_to_num_rf}
 
         super().__init__(
