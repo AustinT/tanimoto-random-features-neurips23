@@ -14,6 +14,11 @@ def basic_smiles() -> list[str]:
 
 
 @pytest.fixture
+def basic_mols(basic_smiles) -> list[Chem.Mol]:
+    return [Chem.MolFromSmiles(s) for s in basic_smiles]
+
+
+@pytest.fixture
 def smiles_and_logp() -> tuple[list[str], list[float]]:
     """Labelled dataset of smiles and logP values."""
     smiles = get_guacamol_smiles(100)
