@@ -12,7 +12,7 @@ from trf23.random_features.error import max_eigenvalue_difference
 R_LIST = list(range(1, 6))
 P_LIST = np.linspace(-2, 2, 9).tolist()
 NUM_PREFACTOR_RF = 10_000
-SC_MULT_ARR = np.logspace(-2, 2, 21)
+SC_MULT_ARR = np.logspace(-2, 2, 15)
 
 
 def main():
