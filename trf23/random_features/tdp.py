@@ -10,6 +10,18 @@ from scipy import stats
 from sklearn.kernel_approximation import PolynomialCountSketch, fft, ifft
 
 
+def prefactor_exact(x1: np.ndarray, x2: np.ndarray, r: int):
+    n1 = np.sum(x1**2, axis=-1, keepdims=True)
+    n2 = np.sum(x2**2, axis=-1, keepdims=True)
+    return np.power(n1 + n2.T, -r)
+
+
+def tdp_power_series_term(x1: np.ndarray, x2: np.ndarray, r: int):
+    prefactor = prefactor_exact(x1, x2, r)
+    numerator = np.power(x1 @ x2.T, r)
+    return numerator * prefactor
+
+
 def _gamma_dist(s: float, c: float) -> stats.gamma:
     return stats.gamma(a=s, scale=1 / c)
 
@@ -280,6 +292,7 @@ class Default_TDP_Featurizer(Default_rs_TDPFeaturizer):
         input_dim: int,
         num_rf: int,
         max_R: int = 4,
+        r_allocation_p: float = -1.0,
         **kwargs,
     ):
         # Set some default kwargs
@@ -287,7 +300,7 @@ class Default_TDP_Featurizer(Default_rs_TDPFeaturizer):
 
         # r to num rf
         r_array = np.arange(1, max_R + 1)
-        rf_fracs = 1 / r_array
+        rf_fracs = np.power(r_array, r_allocation_p)
         rf_fracs = rf_fracs / rf_fracs.sum()
         r_to_num_rf = {r: int(num_rf * rf_frac) for r, rf_frac in zip(r_array, rf_fracs)}
         total_rf = sum(r_to_num_rf.values())
