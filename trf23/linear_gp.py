@@ -20,7 +20,7 @@ def _bayesian_linear_model_matrices(
 
     The matrices are: (using notation of v = kernel variance, n = noise_variance)
 
-    1. A = vX^T (vXX^T + nI)^{-1} y_train. Shape = D x N_train. X_test @ A = posterior mean.
+    1. A = vX^T (vXX^T + nI)^{-1} y_train. Shape = D (it is a 1D array). X_test @ A = posterior mean.
     2. B = vX^T (vXX^T + nI)^{-1} @ X. Shape = D x D. v * (X_test @ X_test.T - X_test @ B @ X_test.T) = posterior covar.
 
     Overall it uses the Woodbury identity to avoid inverting the NxN matrix,
@@ -31,15 +31,16 @@ def _bayesian_linear_model_matrices(
     snr = kernel_variance / noise_variance
     snr2 = snr**2
 
-    # DxD matrix which appears inside Woodbury identity and will be inverted
-    inner_dxd_matrix = torch.eye(x_train.shape[-1]).to(x_train) + snr * x_train.T @ x_train  # call this matrix C
-
-    # Precompute X^T @ X (used a lot)
+    # Precompute X^T @ X  and X^T @ y (they are used multiple times)
     XtX = x_train.T @ x_train
+    XtY = x_train.T @ y_train
+
+    # DxD matrix which appears inside Woodbury identity and will be inverted
+    inner_dxd_matrix = torch.eye(x_train.shape[-1]).to(x_train) + snr * XtX  # call this matrix C
 
     # Matrix A = v X^T (I/n - v/(n^2) X C^{-1} X^T) y_train (from Woodbury)
     #          = (v/n X^T y_train) - (v/n)^2 (X^T X) C^{-1} (X^T y_train)  (bracketing avoids NxN matrices)
-    A = snr * x_train.T @ y_train - snr2 * (XtX) @ torch.linalg.solve(inner_dxd_matrix, x_train.T @ y_train)
+    A = snr * XtY - snr2 * (XtX) @ torch.linalg.solve(inner_dxd_matrix, XtY)
 
     # Matrix B = v X^T (I/n - v/(n^2) X C^{-1} X^T) X (from Woodbury)
     #          = v/n X^T X - (v/n)^2 (X^T X) C^{-1} (X^T X)  (bracketing avoids NxN matrices)
