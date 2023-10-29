@@ -1,7 +1,9 @@
+import math
 from pathlib import Path
 
-MAX_THREADS = 4
-NUM_TRIALS = 3
+MAX_THREADS = 6
+NUM_TRIALS = 5
+NUM_EXACT_FIT = 5_000
 
 for target in [
     "ESR2",
@@ -10,7 +12,7 @@ for target in [
     "PARP1",
     "PGR",
 ]:
-    for M in [5000]:
+    for M in [5_000]:
         for count_fps in [True, False]:
             out_path = Path("results") / "regression" / f"M{M}" / f"count{count_fps}" / target
             out_path.mkdir(parents=True, exist_ok=True)
@@ -23,7 +25,8 @@ for target in [
                         "CUDA_VISIBLE_DEVICES='' PYTHONPATH=.:$PYTHONPATH python "
                         "experiment_scripts/approx_gp_regression.py "
                         f"--seed={trial} --dataset=dockstring --target={target} --fp_dim=1024 "
-                        f"--kernel={kernel} --num_exact_fit=5_000 "
+                        f"--kernel={kernel} --num_exact_fit={NUM_EXACT_FIT} "
+                        f"--eval_rsgp --rsgp_subset_sizes {M} "
                     )
                     if not count_fps:
                         base_command += "--binary_fps "
@@ -34,35 +37,38 @@ for target in [
                             f"--logfile={out_path}/{expt_name}.log --output_json={out_path}/{expt_name}.json "
                         )
 
-                    # Random subset of size M
-                    print(_get_command_with_output_files("rsgp") + f"--eval_rsgp --rsgp_subset_sizes {M}")
+                    # Two different sets of experiments, depending on whether count FPs are used
+                    if count_fps:
+                        # Random-subset GP and SVGP with M inducing points, set by k-means.
+                        svgp_batch_size = 2 * M
+                        svgp_pretrain_num_steps = int(
+                            math.ceil(220000 / svgp_batch_size)
+                        )  # approx size of dockstring dataset
+                        print(
+                            _get_command_with_output_files("svgp") + f"--fit_svgp --svgp_num_inducing_points {M} "
+                            f"--svgp_pretrain_batch_size={svgp_batch_size} "
+                            f"--svgp_pretrain_num_steps={svgp_pretrain_num_steps} "
+                            f"--svgp_pretrain_eval_interval={svgp_pretrain_num_steps} "
+                            "--svgp_pretrain_lr=1e-1 "
+                            "--svgp_num_steps=0 "
+                        )
 
-                    # SVGP with M inducing points, set by k-means
-                    svgp_batch_size = 2 * M
-                    svgp_pretrain_num_steps = 220000 // svgp_batch_size  # approx size of dockstring dataset
-                    print(
-                        _get_command_with_output_files("svgp") + f"--fit_svgp --svgp_num_inducing_points {M} "
-                        f"--svgp_pretrain_batch_size={svgp_batch_size} "
-                        f"--svgp_pretrain_num_steps={svgp_pretrain_num_steps} "
-                        f"--svgp_pretrain_eval_interval={svgp_pretrain_num_steps} "
-                        "--svgp_pretrain_lr=1e-1 "
-                        "--svgp_num_steps=0 "
-                    )
-
-                    # RFGP with M random features
-                    standard_rfgp_args = f"--fit_rfgp --num_random_features={M} "
-                    bias_correction_list = ["none"]
-                    if kernel == "T_DP":
-                        for bc in ["none", "normalize", "sketch_error"]:
-                            print(
-                                _get_command_with_output_files(f"rfgp-{bc}")
-                                + standard_rfgp_args
-                                + f"--tdp_bias_correction={bc} "
-                            )
-                    elif kernel == "T_MM":
-                        for dist in ["Rademacher", "Gaussian"]:
-                            print(
-                                _get_command_with_output_files(f"rfgp-{dist}")
-                                + standard_rfgp_args
-                                + f"--tmm_distribution={dist} --num_jobs={MAX_THREADS} "
-                            )
+                        # RFGP with M random features
+                        standard_rfgp_args = f"--fit_rfgp --num_random_features={M} "
+                        if kernel == "T_DP":
+                            for bc in ["none", "normalize", "sketch_error"]:
+                                print(
+                                    _get_command_with_output_files(f"rfgp-{bc}")
+                                    + standard_rfgp_args
+                                    + f"--tdp_bias_correction={bc} "
+                                )
+                        elif kernel == "T_MM":
+                            for dist in ["Rademacher", "Gaussian"]:
+                                print(
+                                    _get_command_with_output_files(f"rfgp-{dist}")
+                                    + standard_rfgp_args
+                                    + f"--tmm_distribution={dist} --num_jobs={MAX_THREADS} "
+                                )
+                    else:
+                        # Just do random subsets
+                        print(_get_command_with_output_files("rsgp"))
