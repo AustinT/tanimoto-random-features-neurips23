@@ -1,0 +1,74 @@
+{
+  "times": {
+    "make_fps": 88.07118531875312,
+    "fit_subset_gp": 140.67033182270825,
+    "eval_subset_gp": {
+      "0;5000": 359.0420986749232
+    },
+    "make_random_features_train": 1781.3980414066464,
+    "make_random_features_test": 342.6853346526623,
+    "rfgp_predictions": 146.42202338390052
+  },
+  "metrics": {
+    "eval_subset_gp": {
+      "0;5000": {
+        "R2": 0.6968047433848525,
+        "avg_log_prob": -1.0927718024665287,
+        "mae": 0.4641608754706639,
+        "mse": 0.3574589471978979
+      }
+    },
+    "rfgp": {
+      "R2": 0.6997126241156045,
+      "avg_log_prob": -1.2112840633352122,
+      "mae": 0.4606742110125449,
+      "mse": 0.35403063503960097
+    }
+  },
+  "args": {
+    "logfile": "results/regression/M5000/countTrue/KIT/rfgp-Rademacher-T_MM-4.log",
+    "output_json": "results/regression/M5000/countTrue/KIT/rfgp-Rademacher-T_MM-4.json",
+    "seed": 4,
+    "num_jobs": 6,
+    "dataset": "dockstring",
+    "target": "KIT",
+    "fp_dim": 1024,
+    "binary_fps": false,
+    "kernel": "T_MM",
+    "num_exact_fit": 5000,
+    "eval_rsgp": true,
+    "rsgp_subset_sizes": [
+      5000
+    ],
+    "fit_svgp": false,
+    "svgp_num_inducing_points": 100,
+    "svgp_inducing_init": "kmeans",
+    "svgp_pretrain_num_steps": 100,
+    "svgp_pretrain_batch_size": 4096,
+    "svgp_pretrain_lr": 0.1,
+    "svgp_pretrain_eval_interval": 100,
+    "svgp_num_steps": 50000,
+    "svgp_batch_size": 256,
+    "svgp_lr": 0.001,
+    "svgp_eval_interval": 1000,
+    "fit_rfgp": true,
+    "num_random_features": 5000,
+    "tdp_bias_correction": "normalize",
+    "tmm_distribution": "Rademacher"
+  },
+  "data_shapes": {
+    "train": [
+      221270,
+      1024
+    ],
+    "test": [
+      38880,
+      1024
+    ]
+  },
+  "gp_hparams": {
+    "outputscale": 0.8487580275811482,
+    "noise": 0.1337348419181356,
+    "mean": -6.10910691790528
+  }
+}

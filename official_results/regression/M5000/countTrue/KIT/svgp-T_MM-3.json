@@ -1,0 +1,79 @@
+{
+  "times": {
+    "make_fps": 84.9734767600894,
+    "fit_subset_gp": 147.3893256932497,
+    "eval_subset_gp": {
+      "0;5000": 382.6564354747534
+    },
+    "init_inducing_points": 1106.0993419382721
+  },
+  "metrics": {
+    "eval_subset_gp": {
+      "0;5000": {
+        "R2": 0.6927163098472285,
+        "avg_log_prob": -1.0943947673986716,
+        "mae": 0.4678692968966191,
+        "mse": 0.3622790989521276
+      }
+    },
+    "svgp": [
+      {
+        "n_opt_steps": 22,
+        "train_time": 1499.3656266480684,
+        "eval_time": 95.45663877762854,
+        "metrics": {
+          "R2": 0.7494729027719269,
+          "avg_log_prob": -0.8437418326496625,
+          "mae": 0.4188210060640883,
+          "mse": 0.295364622189206
+        }
+      }
+    ]
+  },
+  "args": {
+    "logfile": "results/regression/M5000/countTrue/KIT/svgp-T_MM-3.log",
+    "output_json": "results/regression/M5000/countTrue/KIT/svgp-T_MM-3.json",
+    "seed": 3,
+    "num_jobs": 1,
+    "dataset": "dockstring",
+    "target": "KIT",
+    "fp_dim": 1024,
+    "binary_fps": false,
+    "kernel": "T_MM",
+    "num_exact_fit": 5000,
+    "eval_rsgp": true,
+    "rsgp_subset_sizes": [
+      5000
+    ],
+    "fit_svgp": true,
+    "svgp_num_inducing_points": 5000,
+    "svgp_inducing_init": "kmeans",
+    "svgp_pretrain_num_steps": 22,
+    "svgp_pretrain_batch_size": 10000,
+    "svgp_pretrain_lr": 0.1,
+    "svgp_pretrain_eval_interval": 22,
+    "svgp_num_steps": 0,
+    "svgp_batch_size": 256,
+    "svgp_lr": 0.001,
+    "svgp_eval_interval": 1000,
+    "fit_rfgp": false,
+    "num_random_features": 1000,
+    "tdp_bias_correction": "normalize",
+    "tmm_distribution": "Rademacher"
+  },
+  "data_shapes": {
+    "train": [
+      221270,
+      1024
+    ],
+    "test": [
+      38880,
+      1024
+    ]
+  },
+  "gp_hparams": {
+    "outputscale": 0.8462932157211704,
+    "noise": 0.12802901178473544,
+    "mean": -5.99819856090422
+  }
+}

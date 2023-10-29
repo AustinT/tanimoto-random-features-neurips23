@@ -1,0 +1,79 @@
+{
+  "times": {
+    "make_fps": 97.82780965603888,
+    "fit_subset_gp": 63.01185090281069,
+    "eval_subset_gp": {
+      "0;5000": 69.42526238411665
+    },
+    "init_inducing_points": 727.2633309122175
+  },
+  "metrics": {
+    "eval_subset_gp": {
+      "0;5000": {
+        "R2": 0.3918773649735716,
+        "avg_log_prob": -1.180465258841187,
+        "mae": 0.5988884568118524,
+        "mse": 0.5672033385013605
+      }
+    },
+    "svgp": [
+      {
+        "n_opt_steps": 22,
+        "train_time": 729.0592633187771,
+        "eval_time": 34.54858190380037,
+        "metrics": {
+          "R2": 0.541456934591343,
+          "avg_log_prob": -1.0166619196164381,
+          "mae": 0.5085492639032148,
+          "mse": 0.4276886643680593
+        }
+      }
+    ]
+  },
+  "args": {
+    "logfile": "results/regression/M5000/countTrue/PGR/svgp-T_DP-2.log",
+    "output_json": "results/regression/M5000/countTrue/PGR/svgp-T_DP-2.json",
+    "seed": 2,
+    "num_jobs": 1,
+    "dataset": "dockstring",
+    "target": "PGR",
+    "fp_dim": 1024,
+    "binary_fps": false,
+    "kernel": "T_DP",
+    "num_exact_fit": 5000,
+    "eval_rsgp": true,
+    "rsgp_subset_sizes": [
+      5000
+    ],
+    "fit_svgp": true,
+    "svgp_num_inducing_points": 5000,
+    "svgp_inducing_init": "kmeans",
+    "svgp_pretrain_num_steps": 22,
+    "svgp_pretrain_batch_size": 10000,
+    "svgp_pretrain_lr": 0.1,
+    "svgp_pretrain_eval_interval": 22,
+    "svgp_num_steps": 0,
+    "svgp_batch_size": 256,
+    "svgp_lr": 0.001,
+    "svgp_eval_interval": 1000,
+    "fit_rfgp": false,
+    "num_random_features": 1000,
+    "tdp_bias_correction": "normalize",
+    "tmm_distribution": "Rademacher"
+  },
+  "data_shapes": {
+    "train": [
+      221272,
+      1024
+    ],
+    "test": [
+      38879,
+      1024
+    ]
+  },
+  "gp_hparams": {
+    "outputscale": 0.792934042805467,
+    "noise": 0.43930638273513495,
+    "mean": -6.293311131117313
+  }
+}

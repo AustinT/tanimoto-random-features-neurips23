@@ -1,0 +1,65 @@
+{
+  "times": {
+    "make_fps": 115.73480845615268,
+    "fit_subset_gp": 54.79328238591552,
+    "eval_subset_gp": {
+      "0;5000": 93.92669368907809
+    }
+  },
+  "metrics": {
+    "eval_subset_gp": {
+      "0;5000": {
+        "R2": 0.5972335414102208,
+        "avg_log_prob": -1.1608653613787443,
+        "mae": 0.5401469952049266,
+        "mse": 0.47485068157539057
+      }
+    }
+  },
+  "args": {
+    "logfile": "results/regression/M5000/countFalse/KIT/rsgp-T_DP-2.log",
+    "output_json": "results/regression/M5000/countFalse/KIT/rsgp-T_DP-2.json",
+    "seed": 2,
+    "num_jobs": 1,
+    "dataset": "dockstring",
+    "target": "KIT",
+    "fp_dim": 1024,
+    "binary_fps": true,
+    "kernel": "T_DP",
+    "num_exact_fit": 5000,
+    "eval_rsgp": true,
+    "rsgp_subset_sizes": [
+      5000
+    ],
+    "fit_svgp": false,
+    "svgp_num_inducing_points": 100,
+    "svgp_inducing_init": "kmeans",
+    "svgp_pretrain_num_steps": 100,
+    "svgp_pretrain_batch_size": 4096,
+    "svgp_pretrain_lr": 0.1,
+    "svgp_pretrain_eval_interval": 100,
+    "svgp_num_steps": 50000,
+    "svgp_batch_size": 256,
+    "svgp_lr": 0.001,
+    "svgp_eval_interval": 1000,
+    "fit_rfgp": false,
+    "num_random_features": 1000,
+    "tdp_bias_correction": "normalize",
+    "tmm_distribution": "Rademacher"
+  },
+  "data_shapes": {
+    "train": [
+      221270,
+      1024
+    ],
+    "test": [
+      38880,
+      1024
+    ]
+  },
+  "gp_hparams": {
+    "outputscale": 0.9251726654155128,
+    "noise": 0.1587458518063271,
+    "mean": -6.8213254050583325
+  }
+}

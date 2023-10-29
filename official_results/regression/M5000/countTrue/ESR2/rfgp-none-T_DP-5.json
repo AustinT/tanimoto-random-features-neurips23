@@ -1,0 +1,74 @@
+{
+  "times": {
+    "make_fps": 83.78601084463298,
+    "fit_subset_gp": 78.38875928521156,
+    "eval_subset_gp": {
+      "0;5000": 85.7669449839741
+    },
+    "make_random_features_train": 689.2510844375938,
+    "make_random_features_test": 122.0524297002703,
+    "rfgp_predictions": 140.58685837499797
+  },
+  "metrics": {
+    "eval_subset_gp": {
+      "0;5000": {
+        "R2": 0.5114904923968993,
+        "avg_log_prob": -1.072117770160881,
+        "mae": 0.4730645150963076,
+        "mse": 0.38033206885227494
+      }
+    },
+    "rfgp": {
+      "R2": 0.546724865898233,
+      "avg_log_prob": -0.9022494388347292,
+      "mae": 0.452413432039717,
+      "mse": 0.3529001315820514
+    }
+  },
+  "args": {
+    "logfile": "results/regression/M5000/countTrue/ESR2/rfgp-none-T_DP-5.log",
+    "output_json": "results/regression/M5000/countTrue/ESR2/rfgp-none-T_DP-5.json",
+    "seed": 5,
+    "num_jobs": 1,
+    "dataset": "dockstring",
+    "target": "ESR2",
+    "fp_dim": 1024,
+    "binary_fps": false,
+    "kernel": "T_DP",
+    "num_exact_fit": 5000,
+    "eval_rsgp": true,
+    "rsgp_subset_sizes": [
+      5000
+    ],
+    "fit_svgp": false,
+    "svgp_num_inducing_points": 100,
+    "svgp_inducing_init": "kmeans",
+    "svgp_pretrain_num_steps": 100,
+    "svgp_pretrain_batch_size": 4096,
+    "svgp_pretrain_lr": 0.1,
+    "svgp_pretrain_eval_interval": 100,
+    "svgp_num_steps": 50000,
+    "svgp_batch_size": 256,
+    "svgp_lr": 0.001,
+    "svgp_eval_interval": 1000,
+    "fit_rfgp": true,
+    "num_random_features": 5000,
+    "tdp_bias_correction": "none",
+    "tmm_distribution": "Rademacher"
+  },
+  "data_shapes": {
+    "train": [
+      221272,
+      1024
+    ],
+    "test": [
+      38879,
+      1024
+    ]
+  },
+  "gp_hparams": {
+    "outputscale": 0.6829261499995487,
+    "noise": 0.30401096836517344,
+    "mean": -6.917336799229834
+  }
+}
