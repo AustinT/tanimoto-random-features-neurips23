@@ -107,11 +107,11 @@ def main():
         ("TDP", tf.batch_tdp_sim_np, tdp_featurizer),
     ]:
         # Exact sample from GP
-        kernel_matix = k_func(fps_to_use[k_name], fps_to_use[k_name])
         t_start = time.monotonic()
+        kernel_matix = k_func(fps_to_use[k_name], fps_to_use[k_name])
         samples = rng.multivariate_normal(
             mean=np.zeros(len(all_smiles)),
-            cov=kernel_matix,
+            cov=kernel_matix + np.eye(len(all_smiles)) * 1e-4,
             size=args.batch_size,
         )
         thompson_samples.append(
