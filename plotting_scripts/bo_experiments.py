@@ -58,15 +58,17 @@ def main():
 
         # Times
         plt.sca(axes[0])
-        plt.loglog(num_data_arr, np.median(times, axis=1), ".-", label=method_to_label[method])
-        plt.fill_between(num_data_arr, np.quantile(times, 0.25, axis=1), np.quantile(times, 0.75, axis=1), alpha=0.3)
+        mean_time = np.mean(times, axis=1)
+        std_err_time = np.std(times, axis=1) / np.sqrt(times.shape[1])
+        plt.loglog(num_data_arr, mean_time, ".-", label=method_to_label[method])
+        plt.fill_between(num_data_arr, mean_time - std_err_time, mean_time + std_err_time, alpha=0.3)
 
-        # Avg of top 5 chosen molecules
+        # Scores of molecules
         plt.sca(axes[1])
-        plt.plot(num_data_arr, np.median(top_mols, axis=1), ".-", label=method_to_label[method])
-        plt.fill_between(
-            num_data_arr, np.quantile(top_mols, 0.0, axis=1), np.quantile(top_mols, 1.0, axis=1), alpha=0.3
-        )
+        mean_score = np.mean(top_mols, axis=1)
+        std_err_score = np.std(top_mols, axis=1) / np.sqrt(top_mols.shape[1])
+        plt.plot(num_data_arr, mean_score, ".-", label=method_to_label[method])
+        plt.fill_between(num_data_arr, mean_score - std_err_score, mean_score + std_err_score, alpha=0.3)
         plt.xscale("log")
 
     # Labels

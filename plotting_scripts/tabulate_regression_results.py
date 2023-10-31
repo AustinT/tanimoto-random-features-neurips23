@@ -100,6 +100,16 @@ def main():
                     tokens.append(f"{np.std(res_dict[(target, kern, k)]):.3f}")
                 lines.append(" & ".join(tokens) + r"\\")
 
+        # If metric is R2, add baseline results
+        if metric == "R2":
+            lines.append(r"\midrule")
+            lines.append(
+                r"N/A & MPNN & 0.506 & 0.001  & 0.798 & 0.005  & 0.755 & 0.005  & 0.815 &  0.010 & 0.324 &  0.096 \\"
+            )
+            lines.append(
+                r"N/A & Attentive FP & 0.627 &  0.010 & 0.880 &  0.001 & 0.806 &  0.008 & 0.910 &  0.002 & 0.678 & 0.008 \\"
+            )
+
         lines += [
             r"\bottomrule",
             r"\end{tabular}",

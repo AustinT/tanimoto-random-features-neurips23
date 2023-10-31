@@ -32,12 +32,18 @@ def main():
     # TMM plots. Set up a figure with 2 subplots beside each other.
     # Left subplot: MSE w.r.t. number of random features
     # Right subplot: variance w.r.t. T_MM(x,x')
-    plt.rcParams.update(figsizes.neurips2023(ncols=2, nrows=1, rel_width=1.0, height_to_width_ratio=0.5))
+    plt.rcParams.update(
+        figsizes.neurips2023(
+            ncols=2,
+            nrows=1,
+            rel_width=1.0,
+        )
+    )
     fig, axes = plt.subplots(nrows=1, ncols=2)
     axins = axes[0].inset_axes(  # Inset axes for left subplot to zoom in on lines
         [0.7, 0.7, 0.15, 0.2],
-        xlim=(9e3, 1.1e4),
-        ylim=(0.5e-4, 2e-4),
+        xlim=(9.5e3, 1.05e4),
+        ylim=(0.8e-4, 1.6e-4),
     )
     tmm_xi = ["Rademacher", "Gaussian"]
     for fp_type in fp_types:
@@ -47,7 +53,11 @@ def main():
 
             # MSE
             for ax in [axes[0], axins]:
-                _plot_mses_vs_num_rf(curr_res, xi, ax, label)
+                kwargs = dict()
+                if xi == "Gaussian":
+                    kwargs["linestyle"] = "--"
+                _plot_mses_vs_num_rf(curr_res, xi, ax, label, **kwargs)
+                del kwargs
 
             # Variance
             plt.sca(axes[1])
@@ -67,10 +77,9 @@ def main():
     # Axis labels
     axes[0].indicate_inset_zoom(axins, edgecolor="black")
     _set_mse_rf_axis_labels(axes[0])
-    axes[0].set_title("$T_{MM}$ matrix reconstruction error")
+    axes[0].set_ylabel("$T_{MM}$ MSE")
     axes[1].set_xlabel("$T_{MM}(x,x')$")
-    axes[1].set_ylabel("Variance")
-    axes[1].set_title("$T_{MM}$ matrix variance")
+    axes[1].set_ylabel("$T_{MM}$ Variance")
     axins.get_xaxis().set_visible(False)
     axins.get_yaxis().set_visible(False)
 
@@ -84,11 +93,7 @@ def main():
     TDP_R_LIST = [1, 3]
     with plt.rc_context(
         {
-            "font.size": 6,
-            "axes.titlesize": 4,
-            "axes.labelsize": 4,
-            "xtick.labelsize": 4,
-            "ytick.labelsize": 4,
+            "axes.titlesize": 7,
             **figsizes.neurips2023(ncols=2, nrows=2, rel_width=0.5),
         },
     ):
@@ -100,7 +105,7 @@ def main():
                 arr = np.asarray(curr_res[f"prefactor_r{r}_M10000_sc_mses"])
                 y = np.median(arr, axis=0)
                 x = curr_res["SC_MULT_ARR"]
-                ctr = plt.contourf(np.log10(y), vmin=-6, vmax=3)
+                ctr = plt.contourf(np.log10(y), vmin=-9, vmax=2)
 
                 # Add lines for optimal s, c
                 middle = len(y) // 2
@@ -117,7 +122,6 @@ def main():
                 plt.title(f"r={r} ({fp_type} FP)")
                 del arr, x, y, middle
         fig.colorbar(ctr, ax=axes.ravel().tolist(), label=r"Median $\log_{10}{\mathrm{MSE}}$")
-        fig.suptitle("Prefactor MSE vs $s, c$")
         plt.savefig(f"{args.output_dir}/tdp_prefactor_contours.pdf")
         plt.close(fig)
 
@@ -126,11 +130,15 @@ def main():
         fig, axes = plt.subplots(nrows=1, ncols=1)
         for fp_type in fp_types:
             curr_res = all_results[("tdp", fp_type)]
+            kwargs = dict()
+            if fp_type == "binary":
+                kwargs["linestyle"] = "--"
             for r in TDP_R_LIST:
-                _plot_mses_vs_num_rf(curr_res, f"prefactor_{r}", axes, f"{fp_type} FP, r={r}")
+                _plot_mses_vs_num_rf(curr_res, f"prefactor_{r}", axes, f"{fp_type} FP, r={r}", **kwargs)
+            del kwargs
         _set_mse_rf_axis_labels(axes)
+        axes.set_ylabel("Prefactor MSE")
         plt.legend()
-        fig.suptitle("Prefactor MSE at optimal $s,c$")
         plt.savefig(output_dir / "prefactor_mse.pdf")
         plt.close(fig)
 
@@ -139,13 +147,17 @@ def main():
     for fp_type in fp_types:
         curr_res = all_results[("tdp", fp_type)]
         for r in TDP_R_LIST:
-            _plot_mses_vs_num_rf(curr_res, key=f"poly_{r}", ax=axes[0], label=f"{fp_type} FP, r={r}")
-            _plot_mses_vs_num_rf(curr_res, key=f"tdp-term_{r}", ax=axes[1], label=f"{fp_type} FP, r={r}")
+            kwargs = dict()
+            if fp_type == "binary":
+                kwargs["linestyle"] = "--"
+            _plot_mses_vs_num_rf(curr_res, key=f"poly_{r}", ax=axes[0], label=f"{fp_type} FP, r={r}", **kwargs)
+            _plot_mses_vs_num_rf(curr_res, key=f"tdp-term_{r}", ax=axes[1], label=f"{fp_type} FP, r={r}", **kwargs)
+            del kwargs
     fig.legend(*axes[0].get_legend_handles_labels(), bbox_to_anchor=(0.5, -0.0), ncol=4, loc="upper center")
     _set_mse_rf_axis_labels(axes[0])
     axes[1].set_xlabel(NUMBER_OF_RANDOM_FEATURES_STR)
-    axes[0].set_title("Polynomial sketch MSE")
-    axes[1].set_title("$T_{DP}$ term sketch MSE")
+    axes[0].set_ylabel("Polynomial MSE")
+    axes[1].set_ylabel("$T_{DP}$ term MSE")
     plt.savefig(output_dir / "poly_and_term_term_mse.pdf")
     plt.close(fig)
 
@@ -164,31 +176,37 @@ def main():
                 ax=axes[0],
                 x=p_list,
                 arr=np.asarray([curr_res["mses"][f"tdp_{bc}_p{p}_R{R}"]["10000"] for p in p_list]),
-                label=bc,
+                label=dict(none="no bias correction", normalize="normalize", sketch_error="sketch error")[bc],
             )
             _plot_mses_vs_num_rf(curr_res, key=f"tdp_{bc}_p{-1.0}_R{R}", ax=axes[1], label=bc)
 
         axes[0].set_xscale("linear")
         axes[0].set_yscale("linear")
         _set_mse_rf_axis_labels(axes[1])
-        axes[0].set_xlabel("$p$")
-        axes[0].set_ylabel("MSE")
-        axes[0].set_title("MSE for different feature allocations")
-        axes[1].set_title("$T_{DP}$ matrix overall MSE")
-        fig.legend(*axes[0].get_legend_handles_labels(), bbox_to_anchor=(0.5, -0.0), ncol=4, loc="upper center")
+        axes[0].set_xlabel("Feature allocation $p$")
+        axes[0].set_ylabel("$T_{DP}$ MSE")
+        axes[1].set_ylabel("$T_{DP}$ MSE (p=-1)")
+        fig.legend(
+            *axes[0].get_legend_handles_labels(),
+            bbox_to_anchor=(0.5, -0.0),
+            ncol=4,
+            loc="upper center",
+        )
         plt.savefig(output_dir / f"tdp_feat_alloc_and_overall_error_{fp_type}.pdf")
         plt.close(fig)
 
 
-def _plot_mses_vs_num_rf(curr_res, key, ax, label) -> None:
+def _plot_mses_vs_num_rf(curr_res, key, ax, label, **kwargs) -> None:
     """Method to plot MSE results in a consistent way."""
     num_rf = curr_res["num_rf_arr"]
     mses = [curr_res["mses"][key][str(m)] for m in num_rf]
-    _loglog_and_fillbetween(ax, num_rf, mses, label)
+    _loglog_and_fillbetween(ax, num_rf, mses, label, **kwargs)
 
 
-def _loglog_and_fillbetween(ax, x, arr, label) -> None:
-    ax.loglog(x, np.median(arr, axis=1), ".-", label=label)
+def _loglog_and_fillbetween(ax, x, arr, label, **kwargs) -> None:
+    kwargs.setdefault("linestyle", "-")
+    kwargs.setdefault("marker", ".")
+    ax.loglog(x, np.median(arr, axis=1), label=label, **kwargs)
     ax.fill_between(x, np.quantile(arr, 0.25, axis=1), np.quantile(arr, 0.75, axis=1), alpha=0.3)
 
 
