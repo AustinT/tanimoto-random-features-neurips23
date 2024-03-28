@@ -1,7 +1,7 @@
 # Tanimoto Random Features
 
 [![Paper](http://img.shields.io/badge/paper-arxiv.2306.14809-B31B1B.svg)](https://arxiv.org/abs/2306.14809)
-[![Conference](http://img.shields.io/badge/NeurIPS-2023-4b44ce.svg)]()
+[![Conference](http://img.shields.io/badge/NeurIPS-2023-4b44ce.svg)](https://proceedings.neurips.cc/paper_files/paper/2023/hash/6a69d44b3386e50c06f7107ef4f29302-Abstract-Conference.html)
 ![GitHub](https://img.shields.io/github/license/AustinT/tanimoto-random-features-neurips23)
 
 This repository provides code to accompany the paper
